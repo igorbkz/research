@@ -201,8 +201,8 @@
             inputs: buildPrompt(),
             parameters: {
                 max_new_tokens: 250,
-                temperature: 0.7,
-                top_p: 0.9,
+                temperature: botNumber === 1 ? 0.6 : 0.8, // Diferentes configurações para cada assistente
+                top_p: botNumber === 1 ? 0.7 : 0.9, // Diferentes configurações para cada assistente
                 repetition_penalty: 1.2,
                 return_full_text: false
             }
@@ -225,7 +225,7 @@
             if (!isPaused) {
                 setTimeout(() => {
                     processBotResponse(currentTurn === 1 ? API_URL1 : API_URL2, currentTurn);
-                }, 10000);
+                }, 20000);
             }
 
         } finally {
