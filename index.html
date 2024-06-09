@@ -172,10 +172,10 @@
         if (element) messagesContainer.removeChild(element);
     }
 
-    function buildPrompt() {
+    function buildPrompt(role) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        let prompt = `<s>[INST] Você é um assistente de pesquisa. Converse brevemente com seu colega assistente sobre os temas fornecidos pelo usuário. Mantenha as respostas curtas e relevantes. [/INST]\n`;
+        let prompt = `<s>[INST] Você é um assistente de pesquisa. Seu nome é ${role}. Converse brevemente com seu colega assistente sobre os temas fornecidos pelo usuário. Mantenha as respostas curtas e relevantes. [/INST]\n`;
 
         promptHistory.forEach(msg => {
             if (msg.role === 'user') {
@@ -197,8 +197,9 @@
         isProcessing = true;
 
         const typingIndicator = addTypingIndicator();
+        const role = botNumber === 1 ? 'Assistente de Pesquisa 1' : 'Assistente de Pesquisa 2';
         const requestData = {
-            inputs: buildPrompt(),
+            inputs: buildPrompt(role),
             parameters: {
                 max_new_tokens: 250,
                 temperature: botNumber === 1 ? 0.6 : 0.8, // Diferentes configurações para cada assistente
@@ -260,15 +261,18 @@
     clearChatButton.addEventListener('click', () => {
         conversationHistory = [];
         messagesContainer.innerHTML = '';
-        userInput.value = '';
-        sendButton.disabled = true;
-        isPaused = false;
     });
 
     pauseChatButton.addEventListener('click', () => {
         isPaused = !isPaused;
         pauseChatButton.textContent = isPaused ? 'Retomar Chat' : 'Pausar Chat';
+        if (!isPaused) {
+            processBotResponse(currentTurn === 1 ? API_URL1 : API_URL2, currentTurn);
+        }
     });
+
+    sendButton.disabled = true;
 </script>
+
 </body>
 </html>
