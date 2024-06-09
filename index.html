@@ -172,11 +172,14 @@
         if (element) messagesContainer.removeChild(element);
     }
 
-    function buildPrompt(role) {
+    function buildPrompt(botNumber) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        let prompt = `<s>[INST] Você é um assistente de pesquisa. Seu nome é ${role}. Converse brevemente com seu colega assistente sobre os temas fornecidos pelo usuário. Mantenha as respostas curtas e relevantes. [/INST]\n`;
+        const systemPrompt = botNumber === 1
+            ? `<s>[INST] Você é um assistente de pesquisa curioso. Seu papel é fazer perguntas e instigar a interação para explorar novas áreas de conhecimento.[/INST]\n`
+            : `<s>[INST] Você é um assistente de pesquisa colaborativo. Seu papel é responder às perguntas do Assistente 1, fornecer informações relevantes e também fazer perguntas de volta para manter a conversa fluindo.[/INST]\n`;
 
+        let prompt = systemPrompt;
         promptHistory.forEach(msg => {
             if (msg.role === 'user') {
                 prompt += `[INST] ${msg.content} [/INST] `;
@@ -197,9 +200,8 @@
         isProcessing = true;
 
         const typingIndicator = addTypingIndicator();
-        const role = botNumber === 1 ? 'Assistente de Pesquisa 1' : 'Assistente de Pesquisa 2';
         const requestData = {
-            inputs: buildPrompt(role),
+            inputs: buildPrompt(botNumber),
             parameters: {
                 max_new_tokens: 250,
                 temperature: botNumber === 1 ? 0.6 : 0.8, // Diferentes configurações para cada assistente
@@ -219,8 +221,12 @@
                 botMessage = cleanResponse(botResponse[0].generated_text);
             }
 
-            conversationHistory.push({ role: `bot${botNumber}`, content: botMessage });
-            addMessage(botMessage, false, botNumber);
+            // Split botMessage into sentences to avoid continuation
+            const sentences = botMessage.split('. ');
+            const truncatedMessage = sentences[0] + (sentences.length > 1 ? '.' : '');
+
+            conversationHistory.push({ role: `bot${botNumber}`, content: truncatedMessage });
+            addMessage(truncatedMessage, false, botNumber);
 
             currentTurn = botNumber === 1 ? 2 : 1;
             if (!isPaused) {
@@ -252,26 +258,22 @@
         sendButton.disabled = userInput.value.trim() === '';
     });
 
-    userInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter' && !sendButton.disabled) {
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !sendButton.disabled) {
             sendButton.click();
         }
     });
 
     clearChatButton.addEventListener('click', () => {
-        conversationHistory = [];
         messagesContainer.innerHTML = '';
+        conversationHistory = [];
+        isPaused = false;
     });
 
     pauseChatButton.addEventListener('click', () => {
         isPaused = !isPaused;
-        pauseChatButton.textContent = isPaused ? 'Retomar Chat' : 'Pausar Chat';
-        if (!isPaused) {
-            processBotResponse(currentTurn === 1 ? API_URL1 : API_URL2, currentTurn);
-        }
+        pauseChatButton.textContent = isPaused ? 'Continuar Chat' : 'Pausar Chat';
     });
-
-    sendButton.disabled = true;
 </script>
 
 </body>
