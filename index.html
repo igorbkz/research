@@ -7,36 +7,29 @@
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
+            background-color: #2c2c2c;
+            color: #f4f4f4;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            background-color: #2c2c2c;
-            color: #f4f4f4;
+            height: 100vh;
+            margin: 0;
         }
-
         #chat-container {
+            background-color: #3c3c3c;
+            border-radius: 8px;
             width: 100%;
             max-width: 700px;
-            background-color: #3c3c3c;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
-
         #messages {
-            flex-grow: 1;
             padding: 20px;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
+            flex-grow: 1;
         }
-
         .message {
             margin: 10px 0;
             padding: 10px;
@@ -44,64 +37,49 @@
             max-width: 90%;
             word-wrap: break-word;
         }
-
         .user-message {
             background-color: #366b80;
             align-self: flex-end;
-            color: #f4f4f4;
         }
-
         .bot1-message {
             background-color: #444;
             align-self: flex-start;
-            color: #f4f4f4;
         }
-
         .bot2-message {
             background-color: #555;
             align-self: flex-start;
-            color: #f4f4f4;
         }
-
         .typing-indicator {
             display: flex;
-            align-items: center;
             justify-content: center;
             margin: 10px 0;
-            width: 100%;
         }
-
-        .typing-indicator .loader {
+        .loader {
             border: 4px solid #f3f3f3;
-            border-radius: 50%;
             border-top: 4px solid #444;
+            border-radius: 50%;
             width: 20px;
             height: 20px;
             animation: spin 1s linear infinite;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
         #input-container {
             display: flex;
             padding: 10px;
-            border-top: 1px solid #ccc;
             background-color: #4c4c4c;
+            border-top: 1px solid #ccc;
         }
-
         #user-input {
             flex-grow: 1;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 8px;
-            outline: none;
             background-color: #3c3c3c;
             color: #f4f4f4;
         }
-
         #send-button {
             padding: 10px 15px;
             margin-left: 10px;
@@ -111,24 +89,20 @@
             border-radius: 8px;
             cursor: pointer;
         }
-
-        #send-button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-
         #clear-chat, #pause-chat {
             margin: 10px;
             padding: 10px 15px;
-            background-color: #dc3545;
-            color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
         }
-
+        #clear-chat {
+            background-color: #dc3545;
+            color: white;
+        }
         #pause-chat {
             background-color: #ffc107;
+            color: white;
         }
     </style>
 </head>
@@ -144,8 +118,6 @@
 <button id="clear-chat">Reiniciar Chat</button>
 <button id="pause-chat">Pausar Chat</button>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
 <script>
     const API_URL1 = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
     const API_URL2 = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
@@ -159,7 +131,7 @@
     let conversationHistory = [];
     let isProcessing = false;
     let isPaused = false;
-    let currentAPI = API_URL1;
+    let currentTurn = 1;
 
     async function queryAPI(data, apiURL) {
         try {
@@ -179,10 +151,10 @@
         }
     }
 
-    function addMessage(messageContent, isUser, isBot1) {
+    function addMessage(content, isUser, botNumber) {
         const messageElement = document.createElement('div');
-        messageElement.className = `message ${isUser ? 'user-message' : isBot1 ? 'bot1-message' : 'bot2-message'}`;
-        messageElement.innerHTML = isUser ? messageContent : marked.parse(messageContent);
+        messageElement.className = `message ${isUser ? 'user-message' : botNumber === 1 ? 'bot1-message' : 'bot2-message'}`;
+        messageElement.textContent = content;
         messagesContainer.appendChild(messageElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
@@ -220,14 +192,15 @@
         return response.trim().replace(/<\/?s>/g, '');
     }
 
-    async function processBotResponse(typingIndicator, apiURL) {
+    async function processBotResponse(apiURL, botNumber) {
         if (isProcessing) return;
         isProcessing = true;
 
+        const typingIndicator = addTypingIndicator();
         const requestData = {
             inputs: buildPrompt(),
             parameters: {
-                max_new_tokens: 200,
+                max_new_tokens: 250,
                 temperature: 0.7,
                 top_p: 0.9,
                 repetition_penalty: 1.2,
@@ -245,18 +218,14 @@
                 botMessage = cleanResponse(botResponse[0].generated_text);
             }
 
-            const isBot1 = apiURL === API_URL1;
-            conversationHistory.push({ role: isBot1 ? 'bot1' : 'bot2', content: botMessage });
-            addMessage(botMessage, false, isBot1);
+            conversationHistory.push({ role: `bot${botNumber}`, content: botMessage });
+            addMessage(botMessage, false, botNumber);
 
-            // Alterna a API URL entre os dois modelos
-            currentAPI = currentAPI === API_URL1 ? API_URL2 : API_URL1;
-
+            currentTurn = botNumber === 1 ? 2 : 1;
             if (!isPaused) {
-                const newTypingIndicator = addTypingIndicator();
                 setTimeout(() => {
-                    processBotResponse(newTypingIndicator, currentAPI);
-                }, 20000); // Adiciona um delay de 10 segundos entre as respostas
+                    processBotResponse(currentTurn === 1 ? API_URL1 : API_URL2, currentTurn);
+                }, 10000);
             }
 
         } finally {
@@ -275,8 +244,7 @@
         userInput.value = '';
         sendButton.disabled = true;
 
-        const typingIndicator = addTypingIndicator();
-        await processBotResponse(typingIndicator, currentAPI);
+        processBotResponse(API_URL1, 1);
     });
 
     userInput.addEventListener('input', () => {
