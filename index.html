@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot de Pesquisa</title>
+    <title>Chatbot Cientistas Colaborativos</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -15,6 +15,7 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            padding: 0 10px;
         }
         #chat-container {
             background-color: #3c3c3c;
@@ -24,11 +25,13 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         #messages {
             padding: 20px;
             overflow-y: auto;
             flex-grow: 1;
+            height: 400px;
         }
         .message {
             margin: 10px 0;
@@ -95,6 +98,7 @@
             border: none;
             border-radius: 8px;
             cursor: pointer;
+            font-size: 14px;
         }
         #clear-chat {
             background-color: #dc3545;
@@ -175,9 +179,10 @@
     function buildPrompt(botNumber) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        const systemPrompt = botNumber === 1
-            ? `<s>[INST] Você é um assistente de pesquisa curioso. Seu papel é fazer perguntas e instigar a interação para explorar novas áreas de conhecimento.[/INST]\n`
-            : `<s>[INST] Você é um assistente de pesquisa colaborativo. Seu papel é responder às perguntas do Assistente 1, fornecer informações relevantes e também fazer perguntas de volta para manter a conversa fluindo.[/INST]\n`;
+        const systemPrompt1 = `<s>[INST] Você é um cientista curioso especializado em descobrir novas áreas de conhecimento. Faça perguntas instigantes para explorar novos temas e responda às questões de seu colega cientista.[/INST]\n`;
+        const systemPrompt2 = `<s>[INST] Você é um cientista colaborativo. Responda às perguntas do Cientista 1 e faça perguntas relevantes para manter a conversa fluindo, explorando novas áreas de conhecimento.[/INST]\n`;
+
+        const systemPrompt = botNumber === 1 ? systemPrompt1 : systemPrompt2;
 
         let prompt = systemPrompt;
         promptHistory.forEach(msg => {
@@ -204,8 +209,8 @@
             inputs: buildPrompt(botNumber),
             parameters: {
                 max_new_tokens: 250,
-                temperature: botNumber === 1 ? 0.6 : 0.8, // Diferentes configurações para cada assistente
-                top_p: botNumber === 1 ? 0.7 : 0.9, // Diferentes configurações para cada assistente
+                temperature: botNumber === 1 ? 0.6 : 0.8,
+                top_p: botNumber === 1 ? 0.7 : 0.9,
                 repetition_penalty: 1.2,
                 return_full_text: false
             }
@@ -221,7 +226,6 @@
                 botMessage = cleanResponse(botResponse[0].generated_text);
             }
 
-            // Split botMessage into sentences to avoid continuation
             const sentences = botMessage.split('. ');
             const truncatedMessage = sentences[0] + (sentences.length > 1 ? '.' : '');
 
@@ -232,7 +236,7 @@
             if (!isPaused) {
                 setTimeout(() => {
                     processBotResponse(currentTurn === 1 ? API_URL1 : API_URL2, currentTurn);
-                }, 5000);
+                }, 3000);
             }
 
         } finally {
@@ -240,7 +244,6 @@
             isProcessing = false;
         }
     }
-
     sendButton.addEventListener('click', async () => {
         const userMessage = userInput.value.trim();
         if (userMessage === '') return;
@@ -268,6 +271,8 @@
         messagesContainer.innerHTML = '';
         conversationHistory = [];
         isPaused = false;
+        currentTurn = 1; // Reinicia para o primeiro bot
+        pauseChatButton.textContent = 'Pausar Chat';
     });
 
     pauseChatButton.addEventListener('click', () => {
