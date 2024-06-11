@@ -244,6 +244,7 @@
             isProcessing = false;
         }
     }
+
     sendButton.addEventListener('click', async () => {
         const userMessage = userInput.value.trim();
         if (userMessage === '') return;
@@ -271,7 +272,7 @@
         messagesContainer.innerHTML = '';
         conversationHistory = [];
         isPaused = false;
-        currentTurn = 1; // Reinicia para o primeiro bot
+        currentTurn = 1;
         pauseChatButton.textContent = 'Pausar Chat';
     });
 
