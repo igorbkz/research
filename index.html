@@ -190,8 +190,8 @@
     function buildPrompt(botNumber) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Lembre-se de mencionar o nome do seu colega Bot 2 ao se referir às suas contribuições. Responda em português.[/INST]\n`;
-        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Lembre-se de mencionar o nome do seu colega Bot 1 ao se referir às suas contribuições. Responda em português.[/INST]\n`;
+        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Responda em português.[/INST]\n`;
+        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Responda em português.[/INST]\n`;
 
         const systemPrompt = botNumber === 1 ? systemPrompt1 : systemPrompt2;
 
