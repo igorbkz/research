@@ -190,8 +190,8 @@
     function buildPrompt(botNumber) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Responda em português.[/INST]\n`;
-        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Responda em português.[/INST]\n`;
+        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa, abordando os pontos-chave importantes para avançar o estado da arte da ciência. Trabalhe de forma colaborativa com seu colega cientista, Bot 2, respondendo e construindo sobre suas ideias. Não complete as frases do Bot 2, mas sim, responda às suas perguntas e sugestões. Fale em português.[/INST]\n`;
+        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos, focando em discussões significativas para o avanço científico. Trabalhe de forma colaborativa com seu colega cientista, Bot 1, respondendo e construindo sobre suas ideias. Não complete as frases do Bot 1, mas sim, responda às suas perguntas e sugestões. Fale em português.[/INST]\n`;
 
         const systemPrompt = botNumber === 1 ? systemPrompt1 : systemPrompt2;
 
@@ -211,6 +211,11 @@
         return response.trim().replace(/<\/?s>/g, '');
     }
 
+    function truncateAfterLastPeriod(text) {
+        const lastPeriodIndex = text.lastIndexOf('.');
+        return lastPeriodIndex !== -1 ? text.substring(0, lastPeriodIndex + 1) : text;
+    }
+
     async function processBotResponse(apiURL, botNumber) {
         if (isProcessing) return;
         isProcessing = true;
@@ -219,9 +224,8 @@
         const requestData = {
             inputs: buildPrompt(botNumber),
             parameters: {
-                max_new_tokens: 500,
+                max_new_tokens: 200,
                 temperature: 0.7,
-                top_p: 0.85,
                 repetition_penalty: 1.1,
                 return_full_text: false
             }
@@ -232,9 +236,9 @@
             let botMessage = 'Desculpe, não consegui gerar uma resposta.';
 
             if (botResponse?.generated_text) {
-                botMessage = cleanResponse(botResponse.generated_text);
+                botMessage = truncateAfterLastPeriod(cleanResponse(botResponse.generated_text));
             } else if (botResponse?.[0]?.generated_text) {
-                botMessage = cleanResponse(botResponse[0].generated_text);
+                botMessage = truncateAfterLastPeriod(cleanResponse(botResponse[0].generated_text));
             }
 
             conversationHistory.push({ role: `bot${botNumber}`, content: botMessage });
@@ -244,7 +248,7 @@
             if (!isPaused) {
                 setTimeout(() => {
                     processBotResponse(currentTurn === 1 ? API_URL1 : API_URL2, currentTurn);
-                }, 5000);
+                }, 3000);
             }
 
         } finally {
