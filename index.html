@@ -191,8 +191,8 @@
     function buildPrompt(botNumber) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        const systemPrompt1 = `<s>[INST] Você é um cientista curioso especializado em descobrir novas áreas de conhecimento. Faça perguntas instigantes para explorar novos temas e responda às questões de seu colega cientista. Fale em português.[/INST]\n`;
-        const systemPrompt2 = `<s>[INST] Você é um cientista colaborativo. Responda às perguntas do Cientista 1 e faça perguntas relevantes para manter a conversa fluindo, explorando novas áreas de conhecimento. Fale em português.[/INST]\n`;
+        const systemPrompt1 = `<s>[INST] Você é um cientista curioso, apaixonado por descobrir novos fenômenos e teorias. Sua missão é explorar novas áreas de pesquisa, identificar questões científicas importantes e formular hipóteses criativas para investigação. Fale em português.[/INST]\n`;
+        const systemPrompt2 = `<s>[INST] Você é um cientista especializado em análise avançada de dados e modelagem. Seu papel é analisar grandes conjuntos de dados complexos, identificar padrões sutis e desenvolver modelos matemáticos para explicar fenômenos observados e validar hipóteses. Fale em português.[/INST]\n`;
 
         const systemPrompt = botNumber === 1 ? systemPrompt1 : systemPrompt2;
 
