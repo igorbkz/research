@@ -190,8 +190,8 @@
     function buildPrompt(botNumber) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa, abordando os pontos-chave importantes para avançar o estado da arte da ciência. Trabalhe de forma colaborativa com seu colega cientista, Bot 2, respondendo e construindo sobre suas ideias. Não complete as frases do Bot 2, mas sim, responda às suas perguntas e sugestões. Fale em português.[/INST]\n`;
-        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos, focando em discussões significativas para o avanço científico. Trabalhe de forma colaborativa com seu colega cientista, Bot 1, respondendo e construindo sobre suas ideias. Não complete as frases do Bot 1, mas sim, responda às suas perguntas e sugestões. Fale em português.[/INST]\n`;
+        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa, abordando os pontos-chave importantes para avançar o estado da arte da ciência. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Fale em português.[/INST]\n`;
+        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos, focando em discussões significativas para o avanço científico. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Fale em português.[/INST]\n`;
 
         const systemPrompt = botNumber === 1 ? systemPrompt1 : systemPrompt2;
 
@@ -224,7 +224,7 @@
         const requestData = {
             inputs: buildPrompt(botNumber),
             parameters: {
-                max_new_tokens: 200,
+                max_new_tokens: 500,
                 temperature: 0.7,
                 repetition_penalty: 1.1,
                 return_full_text: false
@@ -248,7 +248,7 @@
             if (!isPaused) {
                 setTimeout(() => {
                     processBotResponse(currentTurn === 1 ? API_URL1 : API_URL2, currentTurn);
-                }, 3000);
+                }, 1000);
             }
 
         } finally {
