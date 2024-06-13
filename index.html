@@ -137,6 +137,7 @@
     let isProcessing = false;
     let isPaused = false;
     let currentTurn = 1;
+    let mainObjective = '';
 
     window.addEventListener('load', () => {
         const savedHistory = localStorage.getItem('conversationHistory');
@@ -190,8 +191,8 @@
     function buildPrompt(botNumber) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa, abordando os pontos-chave importantes para avançar o estado da arte da ciência. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Fale em português.[/INST]\n`;
-        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos, focando em discussões significativas para o avanço científico. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias. Fale em português.[/INST]\n`;
+        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa, abordando os pontos-chave importantes para avançar o estado da arte da ciência. Seu objetivo principal é: ${mainObjective}. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias.[/INST]\n`;
+        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos, focando em discussões significativas para o avanço científico. Seu objetivo principal é: ${mainObjective}. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias.[/INST]\n`;
 
         const systemPrompt = botNumber === 1 ? systemPrompt1 : systemPrompt2;
 
@@ -216,6 +217,10 @@
         return lastPeriodIndex !== -1 ? text.substring(0, lastPeriodIndex + 1) : text;
     }
 
+    function isRelevantResponse(response, objective) {
+        return response.toLowerCase().includes(objective.toLowerCase());
+    }
+
     async function processBotResponse(apiURL, botNumber) {
         if (isProcessing) return;
         isProcessing = true;
@@ -224,7 +229,7 @@
         const requestData = {
             inputs: buildPrompt(botNumber),
             parameters: {
-                max_new_tokens: 500,
+                max_new_tokens: 300,
                 temperature: 0.7,
                 repetition_penalty: 1.1,
                 return_full_text: false
@@ -236,9 +241,17 @@
             let botMessage = 'Desculpe, não consegui gerar uma resposta.';
 
             if (botResponse?.generated_text) {
-                botMessage = truncateAfterLastPeriod(cleanResponse(botResponse.generated_text));
+                let cleanBotMessage = truncateAfterLastPeriod(cleanResponse(botResponse.generated_text));
+                if (!isRelevantResponse(cleanBotMessage, mainObjective)) {
+                    cleanBotMessage += ` Lembre-se, nosso objetivo principal é: ${mainObjective}.`;
+                }
+                botMessage = cleanBotMessage;
             } else if (botResponse?.[0]?.generated_text) {
-                botMessage = truncateAfterLastPeriod(cleanResponse(botResponse[0].generated_text));
+                let cleanBotMessage = truncateAfterLastPeriod(cleanResponse(botResponse[0].generated_text));
+                if (!isRelevantResponse(cleanBotMessage, mainObjective)) {
+                    cleanBotMessage += ` Lembre-se, nosso objetivo principal é: ${mainObjective}.`;
+                }
+                botMessage = cleanBotMessage;
             }
 
             conversationHistory.push({ role: `bot${botNumber}`, content: botMessage });
@@ -261,6 +274,7 @@
         const userMessage = userInput.value.trim();
         if (userMessage === '') return;
 
+        mainObjective = userMessage;
         conversationHistory.push({ role: 'user', content: userMessage });
         addMessage(userMessage, true);
 
