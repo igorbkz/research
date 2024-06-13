@@ -191,8 +191,8 @@
     function buildPrompt(botNumber) {
         const maxHistoryLength = 50;
         const promptHistory = conversationHistory.slice(-maxHistoryLength);
-        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa, abordando os pontos-chave importantes para avançar o estado da arte da ciência. Seu objetivo principal é: ${mainObjective}. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias.[/INST]\n`;
-        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos, focando em discussões significativas para o avanço científico. Seu objetivo principal é: ${mainObjective}. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias.[/INST]\n`;
+        const systemPrompt1 = `[INST] Você é um cientista explorador. Sua missão é formular novas hipóteses e explorar áreas desconhecidas de pesquisa, abordando os pontos-chave importantes para avançar o estado da arte da ciência. Seu objetivo principal é: ${mainObjective}. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias e mantendo o foco na descoberta de novas informações científicas.[/INST]\n`;
+        const systemPrompt2 = `[INST] Você é um cientista analítico. Seu papel é analisar e validar as hipóteses com dados e modelos matemáticos, focando em discussões significativas para o avanço científico. Seu objetivo principal é: ${mainObjective}. Trabalhe de forma colaborativa com seu colega cientista, respondendo e construindo sobre suas ideias e mantendo o foco na descoberta de novas informações científicas.[/INST]\n`;
 
         const systemPrompt = botNumber === 1 ? systemPrompt1 : systemPrompt2;
 
@@ -229,9 +229,9 @@
         const requestData = {
             inputs: buildPrompt(botNumber),
             parameters: {
-                max_new_tokens: 300,
-                temperature: 0.7,
-                repetition_penalty: 1.1,
+                max_new_tokens: 200,
+                temperature: 0.5,
+                repetition_penalty: 1.2,
                 return_full_text: false
             }
         };
